@@ -33,7 +33,7 @@ function renderList(snapshot) {
   }
 
   // Sort by foks descending
-  items.sort((a, b) => b.foks - a.foks);
+  items.sort((a, b) => (b.foks + b.loves) - (a.foks + a.loves));
 
   const searchValue = searchEl.value.trim().toLowerCase();
   leaderboardEl.innerHTML = '';
