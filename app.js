@@ -74,7 +74,7 @@ function renderList(snapshot) {
   });
 
   if (!filteredItems.length) {
-    leaderboardEl.innerHTML = `<p style="color: white;">No matching names found.</p>`;
+    leaderboardEl.innerHTML = `<p style="color: white;">FOK IT , HE IS NOT HERE YET. INVITE HIM FOR A COOKIE.</p>`;
   }
 }
 
