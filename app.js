@@ -146,15 +146,29 @@ submitAdd.onclick = () => {
     return;
   }
 
-  const newRef = db.ref('users').push();
-  newRef.set({
-    name,
-    twitter,
-    foks: 0,
-    loves: 0
-  });
+  db.ref('users').once('value').then(snapshot => {
+    const data = snapshot.val() || {};
+    const isDuplicate = Object.values(data).some(
+      item =>
+        item.name.toLowerCase() === name.toLowerCase() ||
+        item.twitter.toLowerCase() === twitter.toLowerCase()
+    );
 
-  addForm.classList.add('hidden');
-  document.getElementById('newName').value = '';
-  document.getElementById('newTwitter').value = '';
+    if (isDuplicate) {
+      alert('This name or Twitter is already on the list.');
+      return;
+    }
+
+    const newRef = db.ref('users').push();
+    newRef.set({
+      name,
+      twitter,
+      foks: 0,
+      loves: 0
+    });
+
+    addForm.classList.add('hidden');
+    document.getElementById('newName').value = '';
+    document.getElementById('newTwitter').value = '';
+  });
 };
