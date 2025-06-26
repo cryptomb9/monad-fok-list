@@ -85,3 +85,44 @@ body {
 .hidden {
   display: none;
 }
+.footer {
+  text-align: center;
+  margin-top: 2em;
+  padding: 1em;
+  color: white;
+  font-size: 0.9em;
+}
+.footer a {
+  color: #e4e2e6;
+  text-decoration: none;
+  font-weight: bold;
+}
+.footer a:hover {
+  text-decoration: underline;
+}
+#addForm {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #2b145e;
+  padding: 2em;
+  border-radius: 10px;
+  color: white;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+#addForm.show {
+  display: block;
+}
+
+#addForm input {
+  display: block;
+  margin: 1em 0;
+  width: 100%;
+  padding: 0.5em;
+  border: none;
+  border-radius: 5px;
+}

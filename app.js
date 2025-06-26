@@ -20,7 +20,6 @@ const addForm = document.getElementById('addForm');
 const submitAdd = document.getElementById('submitAdd');
 const cancelAdd = document.getElementById('cancelAdd');
 
-// Fetch and render leaderboard
 function renderList(snapshot) {
   const data = snapshot.val();
   if (!data) {
@@ -36,17 +35,24 @@ function renderList(snapshot) {
   // Sort by foks descending
   items.sort((a, b) => b.foks - a.foks);
 
+  const searchValue = searchEl.value.trim().toLowerCase();
   leaderboardEl.innerHTML = '';
 
-  items.forEach((item, index) => {
-    if (index >= 100 && searchEl.value.trim() === '') return;
+  let filteredItems = items;
+
+  if (searchValue) {
+    filteredItems = items.filter(item => item.name.toLowerCase().includes(searchValue));
+  }
+
+  filteredItems.forEach((item) => {
+    const actualIndex = items.findIndex(i => i.id === item.id);
 
     const row = document.createElement('div');
     row.className = 'leaderboard-item';
 
     row.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5em;">
-        <span>${index + 1}.</span>
+        <span>${actualIndex + 1}.</span>
         <img src="https://unavatar.io/twitter/${item.twitter}" alt="pfp">
         <a href="https://x.com/${item.twitter}" target="_blank" style="color: white;">${item.name}</a>
       </div>
@@ -66,67 +72,27 @@ function renderList(snapshot) {
 
     leaderboardEl.appendChild(row);
   });
+
+  if (!filteredItems.length) {
+    leaderboardEl.innerHTML = `<p style="color: white;">No matching names found.</p>`;
+  }
 }
 
 db.ref('users').on('value', renderList);
 
-// Search functionality
-searchEl.oninput = () => {
-  const filter = searchEl.value.trim().toLowerCase();
-  db.ref('users').once('value').then(snapshot => {
-    const data = snapshot.val();
-    if (!data) {
-      leaderboardEl.innerHTML = '<p style="color: white;">No matches found.</p>';
-      return;
-    }
-
-    const filteredItems = [];
-    for (const key in data) {
-      if (data[key].name.toLowerCase().includes(filter)) {
-        filteredItems.push({ id: key, ...data[key] });
-      }
-    }
-
-    filteredItems.sort((a, b) => b.foks - a.foks);
-
-    leaderboardEl.innerHTML = '';
-    filteredItems.forEach((item, index) => {
-      const row = document.createElement('div');
-      row.className = 'leaderboard-item';
-
-      row.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 0.5em;">
-          <span>${index + 1}.</span>
-          <img src="https://unavatar.io/twitter/${item.twitter}" alt="pfp">
-          <a href="https://x.com/${item.twitter}" target="_blank" style="color: white;">${item.name}</a>
-        </div>
-        <div class="vote-buttons">
-          <span class="fok-btn">🖕🏿 ${item.foks}</span>
-          <span class="love-btn">💜 ${item.loves}</span>
-        </div>
-      `;
-
-      row.querySelector('.fok-btn').onclick = () => {
-        db.ref('users/' + item.id + '/foks').set(item.foks + 1);
-      };
-
-      row.querySelector('.love-btn').onclick = () => {
-        db.ref('users/' + item.id + '/loves').set(item.loves + 1);
-      };
-
-      leaderboardEl.appendChild(row);
-    });
-  });
-};
-
 // Show add form
 addBtn.onclick = () => {
-  addForm.classList.remove('hidden');
+  addForm.classList.add('show');
 };
 
 // Cancel add form
 cancelAdd.onclick = () => {
-  addForm.classList.add('hidden');
+  addForm.classList.remove('show');
+};
+
+// Search functionality
+searchEl.oninput = () => {
+  db.ref('users').once('value').then(renderList);
 };
 
 // Submit new name
@@ -167,7 +133,7 @@ submitAdd.onclick = () => {
       loves: 0
     });
 
-    addForm.classList.add('hidden');
+    addForm.classList.remove('show');
     document.getElementById('newName').value = '';
     document.getElementById('newTwitter').value = '';
   });
