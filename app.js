@@ -57,11 +57,11 @@ function renderList(snapshot) {
     `;
 
     row.querySelector('.fok-btn').onclick = () => {
-      db.ref('users/' + item.id + '/foks').set(item.foks + 1);
+      db.ref('users/' + item.id + '/foks').transaction(current => (current || 0) + 1);
     };
 
     row.querySelector('.love-btn').onclick = () => {
-      db.ref('users/' + item.id + '/loves').set(item.loves + 1);
+      db.ref('users/' + item.id + '/loves').transaction(current => (current || 0) + 1);
     };
 
     leaderboardEl.appendChild(row);
