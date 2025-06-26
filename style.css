@@ -1,0 +1,87 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #2d004d, #4b0082, #8a2be2);
+  color: white;
+  min-height: 100vh;
+}
+.header {
+  text-align: center;
+  padding: 1em;
+}
+.header h1 {
+  font-size: 3em;
+  font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+.top-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1em;
+  margin-top: 1em;
+}
+#search {
+  padding: 0.5em;
+  border-radius: 1em;
+  border: none;
+  width: 200px;
+}
+#addBtn {
+  padding: 0.5em 1em;
+  border-radius: 2em;
+  background-color: #fff;
+  color: #4b0082;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}
+#leaderboard {
+  max-width: 600px;
+  margin: 2em auto;
+}
+.leaderboard-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.1);
+  padding: 1em;
+  margin: 1em 0;
+  border-radius: 1em;
+}
+.leaderboard-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 1em;
+}
+.vote-buttons {
+  display: flex;
+  gap: 0.5em;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+#addForm {
+  background: rgba(0,0,0,0.8);
+  padding: 2em;
+  max-width: 400px;
+  margin: 2em auto;
+  border-radius: 1em;
+  text-align: center;
+}
+#addForm input {
+  display: block;
+  width: 90%;
+  margin: 1em auto;
+  padding: 0.5em;
+  border-radius: 1em;
+  border: none;
+}
+#addForm button {
+  margin: 0.5em;
+  padding: 0.5em 1em;
+  border-radius: 2em;
+  border: none;
+  cursor: pointer;
+}
+.hidden {
+  display: none;
+}
