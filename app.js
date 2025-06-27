@@ -20,6 +20,11 @@ const addForm = document.getElementById('addForm');
 const submitAdd = document.getElementById('submitAdd');
 const cancelAdd = document.getElementById('cancelAdd');
 
+const fokVoteCounts = {};   // Track 🖕🏿 votes per person per session
+const loveVoteCounts = {};  // Track 💜 votes per person per session
+const fokCooldowns = {};    // Track cooldown per person for 🖕🏿
+const loveCooldowns = {};   // Track cooldown per person for 💜
+
 function renderList(snapshot) {
   const data = snapshot.val();
   if (!data) {
@@ -32,27 +37,25 @@ function renderList(snapshot) {
     items.push({ id: key, ...data[key] });
   }
 
-  // Sort by foks descending
-  items.sort((a, b) => (b.foks + b.loves) - (a.foks + a.loves));
+  // Sort by total votes (foks + loves), tie-breaker by foks
+  items.sort((a, b) => {
+    const totalA = a.foks + a.loves;
+    const totalB = b.foks + b.loves;
+    if (totalB !== totalA) return totalB - totalA;
+    return b.foks - a.foks;
+  });
 
-  const searchValue = searchEl.value.trim().toLowerCase();
   leaderboardEl.innerHTML = '';
 
-  let filteredItems = items;
-
-  if (searchValue) {
-    filteredItems = items.filter(item => item.name.toLowerCase().includes(searchValue));
-  }
-
-  filteredItems.forEach((item) => {
-    const actualIndex = items.findIndex(i => i.id === item.id);
+  items.forEach((item, index) => {
+    if (index >= 100 && searchEl.value.trim() === '') return;
 
     const row = document.createElement('div');
     row.className = 'leaderboard-item';
 
     row.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5em;">
-        <span>${actualIndex + 1}.</span>
+        <span>${index + 1}.</span>
         <img src="https://unavatar.io/twitter/${item.twitter}" alt="pfp">
         <a href="https://x.com/${item.twitter}" target="_blank" style="color: white;">${item.name}</a>
       </div>
@@ -62,20 +65,50 @@ function renderList(snapshot) {
       </div>
     `;
 
-    row.querySelector('.fok-btn').onclick = () => {
-      db.ref('users/' + item.id + '/foks').transaction(current => (current || 0) + 1);
+    const fokBtn = row.querySelector('.fok-btn');
+    const loveBtn = row.querySelector('.love-btn');
+
+    fokVoteCounts[item.id] = fokVoteCounts[item.id] || 0;
+    loveVoteCounts[item.id] = loveVoteCounts[item.id] || 0;
+
+    fokBtn.onclick = () => {
+      if (fokCooldowns[item.id]) return;
+
+      fokVoteCounts[item.id]++;
+
+      if (fokVoteCounts[item.id] >= 100) {
+        fokCooldowns[item.id] = true;
+        fokBtn.style.opacity = '0.5';
+        setTimeout(() => {
+          fokCooldowns[item.id] = false;
+          fokVoteCounts[item.id] = 0;
+          fokBtn.style.opacity = '1';
+        }, 60000); // 1-minute cooldown
+      } else {
+        db.ref('users/' + item.id + '/foks').transaction(current => (current || 0) + 1);
+      }
     };
 
-    row.querySelector('.love-btn').onclick = () => {
-      db.ref('users/' + item.id + '/loves').transaction(current => (current || 0) + 1);
+    loveBtn.onclick = () => {
+      if (loveCooldowns[item.id]) return;
+
+      loveVoteCounts[item.id]++;
+
+      if (loveVoteCounts[item.id] >= 100) {
+        loveCooldowns[item.id] = true;
+        loveBtn.style.opacity = '0.5';
+        setTimeout(() => {
+          loveCooldowns[item.id] = false;
+          loveVoteCounts[item.id] = 0;
+          loveBtn.style.opacity = '1';
+        }, 60000); // 1-minute cooldown
+      } else {
+        db.ref('users/' + item.id + '/loves').transaction(current => (current || 0) + 1);
+      }
     };
 
     leaderboardEl.appendChild(row);
   });
-
-  if (!filteredItems.length) {
-    leaderboardEl.innerHTML = `<p style="color: white;">FOK IT!!! INVITE THEM FOR A COOKIE.</p>`;
-  }
 }
 
 db.ref('users').on('value', renderList);
