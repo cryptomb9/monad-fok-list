@@ -25,37 +25,16 @@ const loveVoteCounts = {};  // Track 💜 votes per person per session
 const fokCooldowns = {};    // Track cooldown per person for 🖕🏿
 const loveCooldowns = {};   // Track cooldown per person for 💜
 
-function renderList(snapshot) {
-  const data = snapshot.val();
-  if (!data) {
-    leaderboardEl.innerHTML = '<p style="color: white;">No entries yet. Add someone!</p>';
-    return;
-  }
-
-  const items = [];
-  for (const key in data) {
-    items.push({ id: key, ...data[key] });
-  }
-
-  // Sort by total votes (foks + loves), tie-breaker by foks
-  items.sort((a, b) => {
-    const totalA = a.foks + a.loves;
-    const totalB = b.foks + b.loves;
-    if (totalB !== totalA) return totalB - totalA;
-    return b.foks - a.foks;
-  });
-
+function renderList(items) {
   leaderboardEl.innerHTML = '';
 
-  items.forEach((item, index) => {
-    if (index >= 100 && searchEl.value.trim() === '') return;
-
+  items.forEach((item) => {
     const row = document.createElement('div');
     row.className = 'leaderboard-item';
 
     row.innerHTML = `
       <div style="display: flex; align-items: center; gap: 0.5em;">
-        <span>${index + 1}.</span>
+        <span>${item.realPosition}.</span>
         <img src="https://unavatar.io/twitter/${item.twitter}" alt="pfp">
         <a href="https://x.com/${item.twitter}" target="_blank" style="color: white;">${item.name}</a>
       </div>
@@ -111,7 +90,51 @@ function renderList(snapshot) {
   });
 }
 
-db.ref('users').on('value', renderList);
+function fetchAndRender() {
+  db.ref('users').once('value').then(snapshot => {
+    const data = snapshot.val();
+    if (!data) {
+      leaderboardEl.innerHTML = '<p style="color: white;">No entries yet. Add someone!</p>';
+      return;
+    }
+
+    const items = [];
+    for (const key in data) {
+      items.push({ id: key, ...data[key] });
+    }
+
+    // Sort by total votes (foks + loves), tie-breaker by foks
+    items.sort((a, b) => {
+      const totalA = a.foks + a.loves;
+      const totalB = b.foks + b.loves;
+      if (totalB !== totalA) return totalB - totalA;
+      return b.foks - a.foks;
+    });
+
+    const searchValue = searchEl.value.trim().toLowerCase();
+
+    if (searchValue) {
+      const filtered = items
+        .map((item, index) => ({
+          ...item,
+          realPosition: index + 1
+        }))
+        .filter(item =>
+          item.name.toLowerCase().includes(searchValue)
+        );
+
+      renderList(filtered);
+    } else {
+      const topItems = items.slice(0, 100).map((item, index) => ({
+        ...item,
+        realPosition: index + 1
+      }));
+      renderList(topItems);
+    }
+  });
+}
+
+db.ref('users').on('value', fetchAndRender);
 
 // Show add form
 addBtn.onclick = () => {
@@ -124,9 +147,7 @@ cancelAdd.onclick = () => {
 };
 
 // Search functionality
-searchEl.oninput = () => {
-  db.ref('users').once('value').then(renderList);
-};
+searchEl.oninput = fetchAndRender;
 
 // Submit new name
 submitAdd.onclick = () => {
